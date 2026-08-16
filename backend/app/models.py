@@ -11,9 +11,7 @@ from app.database import Base
 class Interview(Base):
     __tablename__ = "interviews"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     topic: Mapped[str] = mapped_column(String, nullable=False)
 
     # {"strategy": str, "focus_areas": [str, ...]}
