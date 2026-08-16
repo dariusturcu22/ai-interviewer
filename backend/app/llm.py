@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 
@@ -12,6 +13,8 @@ from app.tools import (
 )
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 MODEL = "claude-sonnet-5"
 MAX_TOKENS = 1024
@@ -87,6 +90,12 @@ def _call_tool(
     if result is not None:
         return result
 
+    logger.warning(
+        "Malformed tool output for %s, retrying with stricter instruction: %s",
+        tool_names,
+        [block.model_dump() for block in response.content],
+    )
+
     # Malformed output is a different failure mode from API errors: retry once with a
     # stricter instruction rather than the backoff loop above. This resends the same
     # request rather than replaying the malformed assistant turn, since a tool_use block
@@ -108,6 +117,11 @@ def _call_tool(
     if result is not None:
         return result
 
+    logger.error(
+        "Malformed tool output for %s persisted after retry: %s",
+        tool_names,
+        [block.model_dump() for block in retry_response.content],
+    )
     raise LLMOutputError(f"Model did not produce valid {tool_names} output after retry")
 
 

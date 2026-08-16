@@ -37,7 +37,7 @@ was good.
 
 ## Running it locally
 
-### Option A: Docker (backend + Postgres), frontend via `npm run dev`
+### Option A: everything in one command
 
 ```bash
 cp backend/.env.example backend/.env
@@ -46,8 +46,24 @@ cp backend/.env.example backend/.env
 docker compose up --build
 ```
 
-This starts the backend on `http://localhost:8000` and a local Postgres on `5432`. Then, in a
-second terminal:
+This starts Postgres (`5432`), the backend (`http://localhost:8000`), and the frontend
+(`http://localhost:3000`) together. The frontend container runs `next dev --webpack` instead of
+Turbopack - Turbopack's file watcher doesn't pick up changes through a Docker bind mount on
+Windows, while webpack's does when polling is enabled (`WATCHPACK_POLLING`/`CHOKIDAR_USEPOLLING`
+in `docker-compose.yml`), so live-reload while editing still works.
+
+### Option B: backend in Docker, frontend via `npm run dev`
+
+Useful if you want the frontend running natively for the fastest dev-server experience.
+
+```bash
+cp backend/.env.example backend/.env
+# fill in ANTHROPIC_API_KEY in backend/.env
+
+docker compose up --build backend postgres
+```
+
+Then, in a second terminal:
 
 ```bash
 cd frontend
@@ -58,7 +74,7 @@ npm run dev
 
 The frontend runs on `http://localhost:3000` and talks to the backend via `NEXT_PUBLIC_API_URL`.
 
-### Option B: everything without Docker
+### Option C: everything without Docker
 
 You still need a local Postgres reachable at the `DATABASE_URL` in `backend/.env` (the easiest
 way is still `docker compose up postgres`, just without the backend container).

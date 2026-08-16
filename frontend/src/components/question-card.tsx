@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
+const MAX_ANSWER_LENGTH = 5000;
+
 interface QuestionCardProps {
   question: string;
   questionNumber: number;
@@ -31,11 +33,35 @@ export function QuestionCard({
     onSubmit(answer.trim());
   }
 
+  function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter") return;
+
+    if (!event.shiftKey && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      handleSubmit(event);
+      return;
+    }
+
+    if (event.ctrlKey || event.metaKey) {
+      // Ctrl/Cmd+Enter has no default browser behavior in a textarea (unlike Shift+Enter,
+      // which already inserts a newline on its own), so it's inserted manually here.
+      event.preventDefault();
+      const textarea = event.currentTarget;
+      const { selectionStart, selectionEnd, value } = textarea;
+      const nextAnswer =
+        value.slice(0, selectionStart) + "\n" + value.slice(selectionEnd);
+      setAnswer(nextAnswer);
+      requestAnimationFrame(() => {
+        textarea.selectionStart = textarea.selectionEnd = selectionStart + 1;
+      });
+    }
+  }
+
   return (
-    <Card className="w-full max-w-xl">
+    <Card className="w-full max-w-2xl">
       <CardHeader>
         <ProgressDots count={questionNumber} />
-        <CardTitle className="text-lg leading-snug font-medium">
+        <CardTitle className="text-xl leading-snug font-medium">
           {question}
         </CardTitle>
       </CardHeader>
@@ -44,11 +70,20 @@ export function QuestionCard({
           <Textarea
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Type your answer..."
-            rows={5}
+            rows={7}
+            maxLength={MAX_ANSWER_LENGTH}
             disabled={submitting}
             autoFocus
+            className="text-base"
           />
+          <div className="text-muted-foreground flex items-center justify-between text-xs">
+            <span>Enter to submit, Ctrl+Enter for a new line</span>
+            <span>
+              {answer.length}/{MAX_ANSWER_LENGTH}
+            </span>
+          </div>
           {errorMessage && (
             <p className="text-destructive text-sm">{errorMessage}</p>
           )}
