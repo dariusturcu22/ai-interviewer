@@ -5,7 +5,11 @@ const SUGGESTIONS = [
   "How your morning routine came to be",
 ];
 
-export function TopicSuggestions({ onSelect }: { onSelect: (topic: string) => void }) {
+export function TopicSuggestions({
+  onSelect,
+}: {
+  onSelect: (topic: string) => void;
+}) {
   return (
     <div className="flex flex-wrap justify-center gap-2">
       {SUGGESTIONS.map((suggestion) => (
@@ -13,7 +17,7 @@ export function TopicSuggestions({ onSelect }: { onSelect: (topic: string) => vo
           key={suggestion}
           type="button"
           onClick={() => onSelect(suggestion)}
-          className="rounded-full border bg-secondary/50 px-3 py-1.5 text-sm text-secondary-foreground transition-colors hover:bg-secondary"
+          className="bg-secondary/50 text-secondary-foreground hover:bg-secondary rounded-full border px-3 py-1.5 text-sm transition-colors"
         >
           {suggestion}
         </button>
