@@ -91,7 +91,10 @@ export function startInterview(topic: string): Promise<StartInterviewResponse> {
   });
 }
 
-export function submitAnswer(sessionId: string, answer: string): Promise<AnswerResponse> {
+export function submitAnswer(
+  sessionId: string,
+  answer: string,
+): Promise<AnswerResponse> {
   return request("/interview/answer", {
     method: "POST",
     body: JSON.stringify({ session_id: sessionId, answer }),

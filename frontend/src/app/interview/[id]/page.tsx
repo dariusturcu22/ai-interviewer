@@ -28,7 +28,7 @@ export default async function InterviewDetailPage({
       <header className="flex items-center justify-between border-b px-6 py-4">
         <Link
           href="/"
-          className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm transition-colors"
         >
           <ArrowLeft className="size-4" />
           Back
@@ -38,7 +38,8 @@ export default async function InterviewDetailPage({
       <main className="flex flex-1 flex-col items-center px-6 py-16">
         {interview === "error" ? (
           <p className="text-muted-foreground">
-            Couldn&apos;t load this interview right now. Please try again shortly.
+            Couldn&apos;t load this interview right now. Please try again
+            shortly.
           </p>
         ) : interview.status === "completed" &&
           interview.summary &&
@@ -58,8 +59,9 @@ export default async function InterviewDetailPage({
         ) : (
           <div className="max-w-xl text-center">
             <p className="text-lg font-medium">{interview.topic}</p>
-            <p className="mt-2 text-muted-foreground">
-              This interview didn&apos;t finish, so there&apos;s no result to show yet.
+            <p className="text-muted-foreground mt-2">
+              This interview didn&apos;t finish, so there&apos;s no result to
+              show yet.
             </p>
           </div>
         )}

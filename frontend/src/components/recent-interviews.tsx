@@ -7,7 +7,9 @@ import { useEffect, useState } from "react";
 import { listInterviews, type InterviewListItem } from "@/lib/api";
 
 export function RecentInterviews({ refreshKey }: { refreshKey: number }) {
-  const [interviews, setInterviews] = useState<InterviewListItem[] | null>(null);
+  const [interviews, setInterviews] = useState<InterviewListItem[] | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -27,7 +29,7 @@ export function RecentInterviews({ refreshKey }: { refreshKey: number }) {
 
   return (
     <div className="w-full max-w-xl">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+      <h2 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
         <History className="size-4" />
         Recent interviews
       </h2>
@@ -36,10 +38,10 @@ export function RecentInterviews({ refreshKey }: { refreshKey: number }) {
           <li key={interview.id}>
             <Link
               href={`/interview/${interview.id}`}
-              className="flex items-center justify-between gap-4 px-4 py-3 text-sm transition-colors hover:bg-muted/50"
+              className="hover:bg-muted/50 flex items-center justify-between gap-4 px-4 py-3 text-sm transition-colors"
             >
               <span className="truncate">{interview.topic}</span>
-              <span className="shrink-0 text-muted-foreground">
+              <span className="text-muted-foreground shrink-0">
                 {new Date(interview.created_at).toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",

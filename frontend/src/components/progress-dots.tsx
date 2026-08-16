@@ -4,7 +4,7 @@ export function ProgressDots({ count }: { count: number }) {
       {Array.from({ length: count }).map((_, index) => (
         <span
           key={index}
-          className="size-1.5 rounded-full bg-primary"
+          className="bg-primary size-1.5 rounded-full"
           style={{ opacity: 0.4 + (0.6 * (index + 1)) / count }}
         />
       ))}

@@ -24,21 +24,24 @@ export function ResultCard({ topic, result, onNewInterview }: ResultCardProps) {
     <Card className="w-full max-w-xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="size-4 text-primary" />
+          <Sparkles className="text-primary size-4" />
           {topic}
         </CardTitle>
         <CardDescription>{result.summary}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <Badge className={sentimentBadgeClass[result.sentiment]} variant="outline">
+        <Badge
+          className={sentimentBadgeClass[result.sentiment]}
+          variant="outline"
+        >
           {sentimentLabel[result.sentiment]}
         </Badge>
-        <p className="text-sm text-muted-foreground">{result.sentiment_note}</p>
+        <p className="text-muted-foreground text-sm">{result.sentiment_note}</p>
 
         {result.key_points.length > 0 && (
           <div>
             <h3 className="mb-2 text-sm font-medium">Key points</h3>
-            <ul className="list-disc space-y-1 pl-5 text-sm text-foreground/90">
+            <ul className="text-foreground/90 list-disc space-y-1 pl-5 text-sm">
               {result.key_points.map((point) => (
                 <li key={point}>{point}</li>
               ))}

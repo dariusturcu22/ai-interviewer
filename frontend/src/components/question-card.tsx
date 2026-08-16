@@ -35,7 +35,9 @@ export function QuestionCard({
     <Card className="w-full max-w-xl">
       <CardHeader>
         <ProgressDots count={questionNumber} />
-        <CardTitle className="text-lg leading-snug font-medium">{question}</CardTitle>
+        <CardTitle className="text-lg leading-snug font-medium">
+          {question}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -47,8 +49,14 @@ export function QuestionCard({
             disabled={submitting}
             autoFocus
           />
-          {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
-          <Button type="submit" disabled={!answer.trim() || submitting} className="self-end">
+          {errorMessage && (
+            <p className="text-destructive text-sm">{errorMessage}</p>
+          )}
+          <Button
+            type="submit"
+            disabled={!answer.trim() || submitting}
+            className="self-end"
+          >
             {submitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
