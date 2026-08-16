@@ -33,11 +33,26 @@ class LLMOutputError(Exception):
     """The model kept returning output that didn't match the expected tool schema."""
 
 
+def _matches_schema_type(value, schema_type: str) -> bool:
+    if schema_type == "string":
+        return isinstance(value, str)
+    if schema_type == "boolean":
+        return isinstance(value, bool)
+    if schema_type == "array":
+        return isinstance(value, list) and all(isinstance(item, str) for item in value)
+    return True
+
+
 def _extract_valid_tool_use(message, tools_by_name: dict) -> tuple[str, dict] | None:
     for block in message.content:
         if block.type == "tool_use" and block.name in tools_by_name:
-            required_fields = tools_by_name[block.name]["input_schema"]["required"]
-            if all(field in block.input for field in required_fields):
+            schema = tools_by_name[block.name]["input_schema"]
+            properties = schema["properties"]
+            if all(
+                field in block.input
+                and _matches_schema_type(block.input[field], properties[field]["type"])
+                for field in schema["required"]
+            ):
                 return block.name, block.input
     return None
 
