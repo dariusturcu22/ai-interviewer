@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 
 from app.tools import (
     ANALYZE_INTERVIEW_TOOL,
+    ASK_QUESTION_TOOL,
     CREATE_INTERVIEW_PLAN_TOOL,
-    GENERATE_NEXT_QUESTION_TOOL,
+    END_INTERVIEW_TOOL,
 )
 
 load_dotenv()
@@ -32,15 +33,20 @@ class LLMOutputError(Exception):
     """The model kept returning output that didn't match the expected tool schema."""
 
 
-def _extract_tool_input(message, tool_name: str) -> dict | None:
+def _extract_valid_tool_use(message, tools_by_name: dict) -> tuple[str, dict] | None:
     for block in message.content:
-        if block.type == "tool_use" and block.name == tool_name:
-            return block.input
+        if block.type == "tool_use" and block.name in tools_by_name:
+            required_fields = tools_by_name[block.name]["input_schema"]["required"]
+            if all(field in block.input for field in required_fields):
+                return block.name, block.input
     return None
 
 
-def _call_tool(system_prompt: str, messages: list[dict], tool: dict) -> dict:
-    tool_name = tool["name"]
+def _call_tool(
+    system_prompt: str, messages: list[dict], tools: list[dict], tool_choice: dict
+) -> tuple[str, dict]:
+    tools_by_name = {t["name"]: t for t in tools}
+    tool_names = "/".join(tools_by_name)
 
     api_attempts = 0
     while True:
@@ -50,48 +56,44 @@ def _call_tool(system_prompt: str, messages: list[dict], tool: dict) -> dict:
                 max_tokens=MAX_TOKENS,
                 system=system_prompt,
                 messages=messages,
-                tools=[tool],
-                tool_choice={"type": "tool", "name": tool_name},
+                tools=tools,
+                tool_choice=tool_choice,
             )
             break
         except RETRYABLE_ERRORS:
             api_attempts += 1
             if api_attempts >= 3:
                 raise LLMServiceError(
-                    f"Anthropic API call for {tool_name} failed after {api_attempts} attempts"
+                    f"Anthropic API call for {tool_names} failed after {api_attempts} attempts"
                 )
             time.sleep(2**api_attempts)
 
-    tool_input = _extract_tool_input(response, tool_name)
-    if tool_input is not None:
-        return tool_input
+    result = _extract_valid_tool_use(response, tools_by_name)
+    if result is not None:
+        return result
 
     # Malformed output is a different failure mode from API errors: retry once with a
-    # stricter instruction rather than the backoff loop above. The assistant's own
-    # (malformed) turn has to be included so the conversation still alternates roles.
-    stricter_messages = messages + [
-        {"role": "assistant", "content": [block.model_dump() for block in response.content]},
-        {
-            "role": "user",
-            "content": (
-                f"Your previous response did not call the {tool_name} tool correctly. "
-                "You must call it with all required fields filled in."
-            ),
-        },
-    ]
+    # stricter instruction rather than the backoff loop above. This resends the same
+    # request rather than replaying the malformed assistant turn, since a tool_use block
+    # requires a matching tool_result in the next message, which doesn't apply here - this
+    # is one-shot structured output, not a real tool-execution loop.
+    stricter_system_prompt = (
+        f"{system_prompt}\n\nYou must call one of the available tools with every required "
+        "field filled in - do not omit any field."
+    )
     retry_response = _client.messages.create(
         model=MODEL,
         max_tokens=MAX_TOKENS,
-        system=system_prompt,
-        messages=stricter_messages,
-        tools=[tool],
-        tool_choice={"type": "tool", "name": tool_name},
+        system=stricter_system_prompt,
+        messages=messages,
+        tools=tools,
+        tool_choice=tool_choice,
     )
-    tool_input = _extract_tool_input(retry_response, tool_name)
-    if tool_input is not None:
-        return tool_input
+    result = _extract_valid_tool_use(retry_response, tools_by_name)
+    if result is not None:
+        return result
 
-    raise LLMOutputError(f"Model did not produce valid {tool_name} output after retry")
+    raise LLMOutputError(f"Model did not produce valid {tool_names} output after retry")
 
 
 def create_interview_plan(topic: str) -> dict:
@@ -103,7 +105,13 @@ def create_interview_plan(topic: str) -> dict:
         "answers and nothing is being graded."
     )
     messages = [{"role": "user", "content": f"Topic: {topic}"}]
-    return _call_tool(system_prompt, messages, CREATE_INTERVIEW_PLAN_TOOL)
+    _, tool_input = _call_tool(
+        system_prompt,
+        messages,
+        [CREATE_INTERVIEW_PLAN_TOOL],
+        {"type": "tool", "name": "create_interview_plan"},
+    )
+    return tool_input
 
 
 def _build_conversation_messages(topic: str, plan: dict, transcript: list[dict]) -> list[dict]:
@@ -163,7 +171,10 @@ def generate_next_question(
         "unsalvageable (repeated manipulation after a redirect already happened)."
     )
     messages = _build_conversation_messages(topic, plan, transcript)
-    return _call_tool(system_prompt, messages, GENERATE_NEXT_QUESTION_TOOL)
+    action, tool_input = _call_tool(
+        system_prompt, messages, [ASK_QUESTION_TOOL, END_INTERVIEW_TOOL], {"type": "any"}
+    )
+    return {"action": action, **tool_input}
 
 
 def analyze_interview(topic: str, transcript: list[dict]) -> dict:
@@ -184,4 +195,10 @@ def analyze_interview(topic: str, transcript: list[dict]) -> dict:
             "content": f"Topic: {topic}\n\n" + "\n".join(transcript_lines),
         }
     ]
-    return _call_tool(system_prompt, messages, ANALYZE_INTERVIEW_TOOL)
+    _, tool_input = _call_tool(
+        system_prompt,
+        messages,
+        [ANALYZE_INTERVIEW_TOOL],
+        {"type": "tool", "name": "analyze_interview"},
+    )
+    return tool_input
