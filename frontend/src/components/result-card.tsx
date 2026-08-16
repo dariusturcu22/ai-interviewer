@@ -21,13 +21,15 @@ interface ResultCardProps {
 
 export function ResultCard({ topic, result, onNewInterview }: ResultCardProps) {
   return (
-    <Card className="w-full max-w-xl">
+    <Card className="w-full max-w-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Sparkles className="text-primary size-4" />
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <Sparkles className="text-primary size-5" />
           {topic}
         </CardTitle>
-        <CardDescription>{result.summary}</CardDescription>
+        <CardDescription className="text-base">
+          {result.summary}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Badge
@@ -41,7 +43,7 @@ export function ResultCard({ topic, result, onNewInterview }: ResultCardProps) {
         {result.key_points.length > 0 && (
           <div>
             <h3 className="mb-2 text-sm font-medium">Key points</h3>
-            <ul className="text-foreground/90 list-disc space-y-1 pl-5 text-sm">
+            <ul className="text-foreground/90 list-disc space-y-1.5 pl-5 text-sm">
               {result.key_points.map((point) => (
                 <li key={point}>{point}</li>
               ))}

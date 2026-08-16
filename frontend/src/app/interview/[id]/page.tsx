@@ -4,7 +4,9 @@ import Link from "next/link";
 
 import { ResultCard } from "@/components/result-card";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { buttonVariants } from "@/components/ui/button";
 import { ApiError, getInterview, type InterviewDetail } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 async function loadInterview(id: string): Promise<InterviewDetail | "error"> {
   try {
@@ -60,9 +62,14 @@ export default async function InterviewDetailPage({
           <div className="max-w-xl text-center">
             <p className="text-lg font-medium">{interview.topic}</p>
             <p className="text-muted-foreground mt-2">
-              This interview didn&apos;t finish, so there&apos;s no result to
-              show yet.
+              This interview hasn&apos;t finished yet.
             </p>
+            <Link
+              href={`/?resume=${interview.id}`}
+              className={cn(buttonVariants({ variant: "default" }), "mt-4")}
+            >
+              Resume interview
+            </Link>
           </div>
         )}
       </main>
