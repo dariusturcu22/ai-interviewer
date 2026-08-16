@@ -41,29 +41,21 @@ CREATE_INTERVIEW_PLAN_TOOL = {
     },
 }
 
-GENERATE_NEXT_QUESTION_TOOL = {
-    "name": "generate_next_question",
-    "description": (
-        "Decide the next step in an ongoing qualitative research interview: either ask an "
-        "adaptive question, or end the interview."
-    ),
+ASK_QUESTION_TOOL = {
+    "name": "ask_question",
+    "description": "Ask the next adaptive question in an ongoing qualitative research interview.",
     "input_schema": {
         "type": "object",
         "properties": {
-            "action": {
-                "type": "string",
-                "enum": ["ask_question", "end_interview"],
-            },
             "question": {
                 "type": "string",
-                "description": "The next question to ask. Empty string if ending the interview.",
+                "description": "The next question to ask.",
             },
             "focus_area": {
                 "type": "string",
                 "description": (
-                    "Which plan focus area this question targets, 'redirect' if this question "
-                    "is steering the conversation back to the interview topic, or empty string "
-                    "if ending the interview."
+                    "Which plan focus area this question targets, or 'redirect' if this "
+                    "question is steering the conversation back to the interview topic."
                 ),
             },
             "is_redirect": {
@@ -73,15 +65,23 @@ GENERATE_NEXT_QUESTION_TOOL = {
                     "topic after an off-topic or manipulative response."
                 ),
             },
+        },
+        "required": ["question", "focus_area", "is_redirect"],
+    },
+}
+
+END_INTERVIEW_TOOL = {
+    "name": "end_interview",
+    "description": "End the interview now instead of asking another question.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
             "closing_message": {
                 "type": "string",
-                "description": (
-                    "A short, warm, neutral closing message shown to the user if ending the "
-                    "interview. Empty string if asking a question."
-                ),
+                "description": "A short, warm, neutral closing message shown to the user.",
             },
         },
-        "required": ["action", "question", "focus_area", "is_redirect", "closing_message"],
+        "required": ["closing_message"],
     },
 }
 
