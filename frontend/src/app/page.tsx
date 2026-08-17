@@ -88,6 +88,7 @@ function screenFromDetail(detail: InterviewDetail): Screen | null {
         key_points: detail.key_points ?? [],
         keywords: detail.keywords ?? [],
         closing_message: "",
+        transcript: detail.transcript,
       },
     };
   }

@@ -1,4 +1,4 @@
-from app.llm import _repair_string_array
+from app.llm import _repair_string_array, _strip_stray_tags
 
 # Actual malformed key_points value captured from a real failure via the
 # malformed-tool-output diagnostic logging (docker logs), where the model leaked
@@ -39,3 +39,24 @@ def test_returns_none_for_a_plain_string_with_no_tags():
 
 def test_returns_none_for_empty_string():
     assert _repair_string_array("") is None
+
+
+# Actual malformed `summary` value observed in production: valid narrative text
+# followed by the same leaked old-style tool-calling closing tag as above, but on a
+# plain string field instead of an array one.
+REAL_MALFORMED_SUMMARY = (
+    "The interview centers on a clear, simple memory: the respondent's mother making "
+    "sarmale for Christmas, with extended family gathered around the table.\n</summary>"
+)
+
+
+def test_strip_stray_tags_removes_a_trailing_leaked_closing_tag():
+    repaired = _strip_stray_tags(REAL_MALFORMED_SUMMARY)
+    assert repaired == (
+        "The interview centers on a clear, simple memory: the respondent's mother making "
+        "sarmale for Christmas, with extended family gathered around the table."
+    )
+
+
+def test_strip_stray_tags_returns_none_for_a_plain_string_with_no_tags():
+    assert _strip_stray_tags("just a normal string") is None

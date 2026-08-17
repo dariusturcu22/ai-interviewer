@@ -39,6 +39,7 @@ def start_interview(request: Request, body: StartInterviewRequest, db: Session =
         transcript=[],
         question_count=0,
         min_questions=MIN_QUESTIONS,
+        max_questions=MAX_QUESTIONS,
         had_prior_redirect=False,
     )
 
@@ -84,7 +85,13 @@ def submit_answer(request: Request, body: AnswerRequest, db: Session = Depends(g
             "in another tab. Refresh to see the latest question.",
         )
 
-    transcript = list(interview.transcript)
+    # Copies each turn dict, not just the outer list - the JSONB column isn't wrapped in
+    # MutableList/MutableDict, so SQLAlchemy detects a change by comparing old vs. new
+    # values. Reusing the same turn dicts and mutating one in place (transcript[-1][...] = ...)
+    # would make the "before" value equal the "after" value whenever the list length doesn't
+    # also change (i.e. on the final answer, where no new question gets appended below), so
+    # the ORM would see no change and silently skip persisting it.
+    transcript = [dict(turn) for turn in interview.transcript]
     transcript[-1]["answer"] = body.answer
     answered_count = len(transcript)
 
@@ -101,6 +108,7 @@ def submit_answer(request: Request, body: AnswerRequest, db: Session = Depends(g
         transcript=transcript,
         question_count=answered_count,
         min_questions=MIN_QUESTIONS,
+        max_questions=MAX_QUESTIONS,
         had_prior_redirect=had_prior_redirect,
     )
 
@@ -144,6 +152,7 @@ def _finish_interview(db: Session, interview: Interview, closing_message: str) -
         key_points=interview.key_points,
         keywords=interview.keywords,
         closing_message=closing_message,
+        transcript=interview.transcript,
     )
 
 

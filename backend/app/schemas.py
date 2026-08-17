@@ -34,6 +34,7 @@ class InterviewResult(BaseModel):
     key_points: list[str]
     keywords: list[str]
     closing_message: str
+    transcript: list[dict]
 
 
 class AnswerResponse(BaseModel):

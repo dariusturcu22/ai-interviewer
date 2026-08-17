@@ -64,7 +64,18 @@ def test_start_then_answer_until_completion(client):
 
     detail_response = client.get(f"/interview/{session_id}")
     assert detail_response.status_code == 200
-    assert detail_response.json()["status"] == "completed"
+    detail_body = detail_response.json()
+    assert detail_body["status"] == "completed"
+
+    # The final answer must actually be persisted, not just used in-memory for the
+    # analysis call and then dropped - the transcript stored here is what the
+    # assignment's "store the interview transcript" requirement refers to.
+    stored_transcript = detail_body["transcript"]
+    assert [turn["answer"] for turn in stored_transcript] == [
+        "answer one",
+        "answer two",
+        "answer three",
+    ]
 
 
 def test_stale_question_number_is_rejected(client):

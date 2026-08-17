@@ -43,18 +43,23 @@ class LLMOutputError(Exception):
 
 # Applied to every prompt that produces user-facing text (questions, closing messages,
 # decline reasons, summaries, key points) - without it the model reliably falls back to
-# stock "AI assistant" tics: em dashes as a sentence connector, "That's a great point",
+# stock "AI assistant" tics: dashes as a sentence connector, "That's a great point",
 # over-enthusiastic transitions, and other patterns that read as obviously LLM-written.
+# Banning only em/en dash isn't enough on its own: the model just substitutes a plain
+# hyphen in the same " - " connector role, which reads exactly as artificial.
 WRITING_STYLE_INSTRUCTION = (
     "Write in a plain, natural, human voice, the way a genuinely curious interviewer would "
-    "actually talk. Never use an em dash (—) or en dash (–) as a sentence connector - "
-    "use a period, comma, semicolon, or 'and' instead. Avoid stock AI-assistant phrasing: no "
+    "actually talk. Never join two clauses with a dash of any kind: not an em dash (—), "
+    "not an en dash (–), and not a hyphen used as a connector with spaces around it. "
+    "Use a period, comma, colon, semicolon, or 'and' instead. A hyphen inside a single "
+    "compound word (e.g. 'well-known') is fine. Avoid stock AI-assistant phrasing: no "
     "'That's a great question/point', no excessive enthusiasm, no generic filler transitions "
     "('It's worth noting that...', 'I'd love to hear more about...'), no over-explaining."
 )
 
 
 _ITEM_TAG_PATTERN = re.compile(r"<item>(.*?)</item>", re.DOTALL)
+_STRAY_TAG_PATTERN = re.compile(r"</?[a-zA-Z_][\w:.-]*(?:\s[^<>]*)?>")
 
 
 def _repair_string_array(value) -> list[str] | None:
@@ -67,11 +72,25 @@ def _repair_string_array(value) -> list[str] | None:
     return items or None
 
 
+def _strip_stray_tags(value: str) -> str | None:
+    """Recovers a plain-string field the model occasionally suffixes or wraps with
+    leaked tool-calling markup (e.g. "...anchored food memory.\n</summary>\n</invoke>")
+    - the same leaked-format failure _repair_string_array handles for array fields,
+    showing up here as debris around otherwise-valid text instead of the whole value."""
+    if not _STRAY_TAG_PATTERN.search(value):
+        return None
+    stripped = _STRAY_TAG_PATTERN.sub("", value).strip()
+    return stripped or None
+
+
 def _coerce_field(value, field_schema: dict) -> tuple[bool, object]:
     schema_type = field_schema["type"]
     if schema_type == "string":
         if not isinstance(value, str):
             return False, value
+        repaired = _strip_stray_tags(value)
+        if repaired is not None:
+            value = repaired
         allowed_values = field_schema.get("enum")
         if allowed_values is not None and value not in allowed_values:
             return False, value
@@ -231,6 +250,7 @@ def generate_next_question(
     transcript: list[dict],
     question_count: int,
     min_questions: int,
+    max_questions: int,
     had_prior_redirect: bool,
 ) -> dict:
     redirect_status = (
@@ -257,7 +277,13 @@ def generate_next_question(
         f"{redirect_status}\n\n"
         f"You have asked {question_count} question(s) so far. Do not end the interview before "
         f"{min_questions} questions have been asked unless the conversation is clearly "
-        "unsalvageable (repeated manipulation after a redirect already happened).\n\n"
+        "unsalvageable (repeated manipulation after a redirect already happened). Once you've "
+        f"reached {min_questions}, though, lean toward ending rather than continuing: only ask "
+        "another question if the person's last answer opened up something specific and "
+        "genuinely worth following up on, not just to work through every remaining focus area "
+        f"in the plan. Most interviews should naturally wrap up at {min_questions} or "
+        f"{min_questions + 1} questions; treat needing all the way up to the {max_questions}-"
+        "question limit as the exception, not the default.\n\n"
         f"{WRITING_STYLE_INSTRUCTION}"
     )
     messages = _build_conversation_messages(topic, plan, transcript)

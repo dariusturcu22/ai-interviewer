@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { ChevronDown, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,25 @@ export function ResultCard({ topic, result, onNewInterview }: ResultCardProps) {
               </span>
             ))}
           </div>
+        )}
+
+        {result.transcript.length > 0 && (
+          <details className="group">
+            <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer list-none items-center gap-1.5 text-sm font-medium transition-colors">
+              <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+              Full transcript
+            </summary>
+            <ol className="mt-4 flex flex-col gap-4">
+              {result.transcript.map((turn, index) => (
+                <li key={index} className="flex flex-col gap-1">
+                  <p className="text-foreground/90 text-sm font-medium">
+                    {turn.question}
+                  </p>
+                  <p className="text-muted-foreground text-sm">{turn.answer}</p>
+                </li>
+              ))}
+            </ol>
+          </details>
         )}
       </CardContent>
       {onNewInterview && (

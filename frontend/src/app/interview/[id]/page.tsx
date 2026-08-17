@@ -56,6 +56,7 @@ export default async function InterviewDetailPage({
               key_points: interview.key_points ?? [],
               keywords: interview.keywords ?? [],
               closing_message: "",
+              transcript: interview.transcript,
             }}
           />
         ) : (
