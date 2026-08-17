@@ -28,20 +28,20 @@ export function RecentInterviews({ refreshKey }: { refreshKey: number }) {
   if (!interviews || interviews.length === 0) return null;
 
   return (
-    <div className="w-full max-w-xl">
+    <div className="w-full max-w-2xl">
       <h2 className="text-muted-foreground mb-3 flex items-center gap-2 text-sm font-medium">
         <History className="size-4" />
         Recent interviews
       </h2>
-      <ul className="flex flex-col divide-y rounded-lg border">
+      <ul className="divide-border flex flex-col divide-y rounded-lg border">
         {interviews.map((interview) => (
           <li key={interview.id}>
             <Link
               href={`/interview/${interview.id}`}
-              className="hover:bg-muted/50 flex items-center justify-between gap-4 px-4 py-3 text-sm transition-colors"
+              className="hover:bg-muted/50 flex items-center justify-between gap-4 px-4 py-3.5 text-base transition-colors"
             >
               <span className="truncate">{interview.topic}</span>
-              <span className="text-muted-foreground shrink-0">
+              <span className="text-muted-foreground shrink-0 text-sm">
                 {new Date(interview.created_at).toLocaleDateString(undefined, {
                   month: "short",
                   day: "numeric",

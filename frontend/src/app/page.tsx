@@ -1,5 +1,6 @@
 "use client";
 
+import { MessageCircleHeart } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
@@ -181,7 +182,11 @@ export default function Home() {
     setSubmitting(true);
     setAnswerError(null);
     try {
-      const response = await submitAnswer(screen.sessionId, answer, screen.questionNumber);
+      const response = await submitAnswer(
+        screen.sessionId,
+        answer,
+        screen.questionNumber,
+      );
       if (response.status === "completed" && response.result) {
         clearActiveInterview();
         setResumable(null);
@@ -221,27 +226,28 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="flex items-center justify-between border-b px-6 py-4">
+      <header className="flex items-center justify-between border-b px-6 py-5">
         <button
           onClick={goHome}
-          className="hover:text-primary font-semibold tracking-tight transition-colors"
+          className="hover:text-primary flex items-center gap-2 text-lg font-semibold tracking-tight transition-colors"
         >
+          <MessageCircleHeart className="text-primary size-5" />
           Mini AI Interviewer
         </button>
         <ThemeToggle />
       </header>
-      <main className="flex flex-1 flex-col items-center gap-10 px-6 py-16">
+      <main className="flex flex-1 flex-col items-center gap-12 px-6 py-20 sm:py-24">
         {screen.kind === "landing" && (
           <motion.div
             key="landing"
             {...fadeSlide}
-            className="flex w-full max-w-2xl flex-col items-center gap-6 text-center"
+            className="flex w-full max-w-2xl flex-col items-center gap-8 text-center"
           >
-            <div className="space-y-2">
-              <h1 className="text-2xl font-semibold tracking-tight">
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
                 What would you like to be interviewed about?
               </h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-lg text-balance">
                 A short, adaptive conversation on any topic you choose. No right
                 answers, no scoring - just a conversation that follows what you
                 actually say.
@@ -292,6 +298,7 @@ export default function Home() {
                 placeholder="e.g. how you learned to cook"
                 maxLength={MAX_TOPIC_LENGTH}
                 disabled={backendStatus !== "ready" || starting}
+                className="h-12 px-4 text-base"
               />
               {startError && (
                 <p className="text-destructive text-sm">{startError}</p>
@@ -301,6 +308,7 @@ export default function Home() {
                 disabled={
                   backendStatus !== "ready" || starting || !topic.trim()
                 }
+                className="h-12 text-base"
               >
                 {starting ? "Starting..." : "Start Interview"}
               </Button>
