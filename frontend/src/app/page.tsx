@@ -164,7 +164,7 @@ export default function Home() {
         sessionId,
         topic: trimmedTopic,
         question: response.question!,
-        questionNumber: 1,
+        questionNumber: response.question_number ?? 1,
       });
     } catch (error) {
       setStartError(
@@ -180,7 +180,7 @@ export default function Home() {
     setSubmitting(true);
     setAnswerError(null);
     try {
-      const response = await submitAnswer(screen.sessionId, answer);
+      const response = await submitAnswer(screen.sessionId, answer, screen.questionNumber);
       if (response.status === "completed" && response.result) {
         clearActiveInterview();
         setResumable(null);
@@ -194,7 +194,7 @@ export default function Home() {
         setScreen({
           ...screen,
           question: response.question,
-          questionNumber: screen.questionNumber + 1,
+          questionNumber: response.question_number ?? screen.questionNumber + 1,
         });
       }
     } catch (error) {

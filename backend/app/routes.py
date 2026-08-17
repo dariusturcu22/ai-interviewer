@@ -57,18 +57,32 @@ def start_interview(request: Request, body: StartInterviewRequest, db: Session =
     db.refresh(interview)
 
     return StartInterviewResponse(
-        status="in_progress", session_id=interview.id, question=first_step["question"]
+        status="in_progress",
+        session_id=interview.id,
+        question=first_step["question"],
+        question_number=1,
     )
 
 
 @router.post("/interview/answer", response_model=AnswerResponse)
 @limiter.limit("20/minute")
 def submit_answer(request: Request, body: AnswerRequest, db: Session = Depends(get_db)):
-    interview = db.get(Interview, body.session_id)
+    # Locks the row for the duration of this request so a concurrent submission for the
+    # same session (e.g. the same interview resumed in two tabs) can't read the same
+    # "current question" this one is about to advance past - it blocks until this
+    # transaction commits, then re-checks question_number below and is correctly
+    # rejected as stale rather than silently overwriting the wrong transcript entry.
+    interview = db.get(Interview, body.session_id, with_for_update=True)
     if interview is None:
         raise HTTPException(status_code=404, detail="Interview not found")
     if interview.status != "in_progress":
         raise HTTPException(status_code=409, detail="Interview has already ended")
+    if body.question_number != len(interview.transcript):
+        raise HTTPException(
+            status_code=409,
+            detail="This question is no longer current - the interview may have moved on "
+            "in another tab. Refresh to see the latest question.",
+        )
 
     transcript = list(interview.transcript)
     transcript[-1]["answer"] = body.answer
@@ -106,7 +120,9 @@ def submit_answer(request: Request, body: AnswerRequest, db: Session = Depends(g
     interview.transcript = transcript
     db.commit()
 
-    return AnswerResponse(status="in_progress", question=next_step["question"])
+    return AnswerResponse(
+        status="in_progress", question=next_step["question"], question_number=len(transcript)
+    )
 
 
 def _finish_interview(db: Session, interview: Interview, closing_message: str) -> InterviewResult:

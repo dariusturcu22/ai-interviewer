@@ -15,6 +15,7 @@ export interface StartInterviewResponse {
   status: "in_progress" | "declined";
   session_id: string | null;
   question: string | null;
+  question_number: number | null;
   message: string | null;
 }
 
@@ -30,6 +31,7 @@ export interface InterviewResult {
 export interface AnswerResponse {
   status: "in_progress" | "completed";
   question: string | null;
+  question_number: number | null;
   result: InterviewResult | null;
 }
 
@@ -102,10 +104,11 @@ export function startInterview(topic: string): Promise<StartInterviewResponse> {
 export function submitAnswer(
   sessionId: string,
   answer: string,
+  questionNumber: number,
 ): Promise<AnswerResponse> {
   return request("/interview/answer", {
     method: "POST",
-    body: JSON.stringify({ session_id: sessionId, answer }),
+    body: JSON.stringify({ session_id: sessionId, answer, question_number: questionNumber }),
   });
 }
 
