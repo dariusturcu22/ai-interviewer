@@ -19,6 +19,13 @@ export interface StartInterviewResponse {
   message: string | null;
 }
 
+export interface TranscriptTurn {
+  question: string;
+  focus_area: string;
+  is_redirect: boolean;
+  answer: string | null;
+}
+
 export interface InterviewResult {
   summary: string;
   sentiment: Sentiment;
@@ -26,6 +33,7 @@ export interface InterviewResult {
   key_points: string[];
   keywords: string[];
   closing_message: string;
+  transcript: TranscriptTurn[];
 }
 
 export interface AnswerResponse {
@@ -40,13 +48,6 @@ export interface InterviewListItem {
   topic: string;
   status: InterviewStatus;
   created_at: string;
-}
-
-export interface TranscriptTurn {
-  question: string;
-  focus_area: string;
-  is_redirect: boolean;
-  answer: string | null;
 }
 
 export interface InterviewDetail {
