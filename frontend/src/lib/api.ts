@@ -72,6 +72,23 @@ export class ApiError extends Error {
   }
 }
 
+// FastAPI returns two different `detail` shapes depending on the failure: a plain string
+// for HTTPException (404, 409, ...), or an array of Pydantic validation-error objects (each
+// with a `msg` field) for a 422. Reading only the string case meant a validation failure -
+// e.g. a topic over the backend's 200-char limit - showed a generic "request failed" message
+// instead of anything actionable.
+function extractErrorMessage(body: unknown, path: string, status: number): string {
+  const detail = (body as { detail?: unknown } | null)?.detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail) && detail.length > 0) {
+    const messages = detail
+      .map((error) => (error && typeof error === "object" ? (error as { msg?: unknown }).msg : null))
+      .filter((msg): msg is string => typeof msg === "string");
+    if (messages.length > 0) return messages.join(" ");
+  }
+  return `Request to ${path} failed with status ${status}`;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -80,11 +97,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    const message =
-      body?.detail && typeof body.detail === "string"
-        ? body.detail
-        : `Request to ${path} failed with status ${response.status}`;
-    throw new ApiError(message, response.status);
+    throw new ApiError(extractErrorMessage(body, path, response.status), response.status);
   }
 
   return response.json() as Promise<T>;

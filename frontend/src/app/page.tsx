@@ -35,6 +35,7 @@ type Screen =
 type ResumableSession = { id: string; topic: string };
 
 const ACTIVE_INTERVIEW_KEY = "mini-interviewer:active-interview";
+const MAX_TOPIC_LENGTH = 200;
 
 const fadeSlide = {
   initial: { opacity: 0, y: 8 },
@@ -289,6 +290,7 @@ export default function Home() {
                   if (event.key === "Enter") handleStart();
                 }}
                 placeholder="e.g. how you learned to cook"
+                maxLength={MAX_TOPIC_LENGTH}
                 disabled={backendStatus !== "ready" || starting}
               />
               {startError && (
