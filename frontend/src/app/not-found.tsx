@@ -9,8 +9,8 @@ export default function NotFound() {
       <Compass className="text-muted-foreground size-10" />
       <h1 className="text-2xl font-semibold tracking-tight">Page not found</h1>
       <p className="text-muted-foreground max-w-sm">
-        There&apos;s nothing here - the page or interview you&apos;re looking
-        for doesn&apos;t exist.
+        There&apos;s nothing here, the page or interview you&apos;re looking for
+        doesn&apos;t exist.
       </p>
       <Link href="/" className={buttonVariants({ variant: "default" })}>
         Back to Mini AI Interviewer

@@ -1,6 +1,6 @@
 // Server-side rendering (e.g. the read-only past-interview page) runs inside the Next.js
 // server process, which in the Docker Compose setup is a different container than the
-// browser - "localhost" there refers to the frontend container itself, not the backend.
+// browser. "localhost" there refers to the frontend container itself, not the backend.
 // BACKEND_INTERNAL_URL lets server-side fetches use the Docker network name instead;
 // it's unset outside Docker, where NEXT_PUBLIC_API_URL is already reachable from both sides.
 const API_BASE_URL =
@@ -75,8 +75,8 @@ export class ApiError extends Error {
 
 // FastAPI returns two different `detail` shapes depending on the failure: a plain string
 // for HTTPException (404, 409, ...), or an array of Pydantic validation-error objects (each
-// with a `msg` field) for a 422. Reading only the string case meant a validation failure -
-// e.g. a topic over the backend's 200-char limit - showed a generic "request failed" message
+// with a `msg` field) for a 422. Reading only the string case meant a validation failure,
+// e.g. a topic over the backend's 200-char limit, showed a generic "request failed" message
 // instead of anything actionable.
 function extractErrorMessage(
   body: unknown,

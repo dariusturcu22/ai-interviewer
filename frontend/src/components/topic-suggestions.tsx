@@ -41,7 +41,7 @@ export function TopicSuggestions({
   onSelect: (topic: string) => void;
 }) {
   // Renders a fixed slice on the server and on the client's first pass so hydration
-  // matches, then swaps to a random selection once mounted - the same pattern
+  // matches, then swaps to a random selection once mounted. The same pattern
   // ThemeToggle uses for client-only state that can't be computed during SSR.
   const mounted = useMounted();
   const suggestions = useMemo(
