@@ -69,7 +69,7 @@ function clearActiveInterview() {
 }
 
 // The pending (unanswered) question is always the last transcript entry while an
-// interview is in progress - see backend/app/routes.py for how transcript entries
+// interview is in progress. See backend/app/routes.py for how transcript entries
 // get appended with answer=null and then filled in.
 function screenFromDetail(detail: InterviewDetail): Screen | null {
   if (
@@ -257,7 +257,7 @@ export default function Home() {
               </h1>
               <p className="text-muted-foreground text-lg text-balance">
                 A short, adaptive conversation on any topic you choose. No right
-                answers, no scoring - just a conversation that follows what you
+                answers, no scoring, just a conversation that follows what you
                 actually say.
               </p>
             </div>

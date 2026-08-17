@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const MAX_ANSWER_LENGTH = 5000;
 
-// Mirrors the backend's MIN_QUESTIONS/MAX_QUESTIONS (backend/app/routes.py) - used only to
+// Mirrors the backend's MIN_QUESTIONS/MAX_QUESTIONS (backend/app/routes.py), used only to
 // pick which loading messages read as more honest about what might happen next, not to
 // enforce anything client-side.
 const MIN_QUESTIONS = 3;
