@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from app.limiter import get_client_ip
+from app.core.limiter import get_client_ip
 
 
 def _mock_request(headers: dict, client_host: str | None = None):
@@ -11,8 +11,8 @@ def _mock_request(headers: dict, client_host: str | None = None):
 
 
 def test_uses_last_hop_of_x_forwarded_for():
-    # The proxy in front of the app appends the real client IP as the last entry -
-    # trusting the first entry would let a client spoof it via their own header.
+    # The proxy in front of the app appends the real client IP as the last entry.
+    # Trusting the first entry would let a client spoof it via their own header.
     request = _mock_request({"X-Forwarded-For": "203.0.113.5, 10.0.0.1"})
     assert get_client_ip(request) == "10.0.0.1"
 

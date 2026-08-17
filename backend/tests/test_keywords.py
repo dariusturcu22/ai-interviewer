@@ -1,4 +1,4 @@
-from app.keywords import extract_keywords
+from app.interviews.keywords import extract_keywords
 
 # Reproduces a real result: short answers about the same few words ("mom", "sarmale",
 # "christmas") made YAKE return both a phrase and the individual words it's built from

@@ -1,4 +1,4 @@
-from app.llm import _repair_string_array, _strip_stray_tags
+from app.interviews.llm import _repair_string_array, _strip_stray_tags
 
 # Actual malformed key_points value captured from a real failure via the
 # malformed-tool-output diagnostic logging (docker logs), where the model leaked

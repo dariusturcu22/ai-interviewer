@@ -21,7 +21,7 @@ class AnswerRequest(BaseModel):
     session_id: uuid.UUID
     answer: str = Field(min_length=1, max_length=5000)
     # Which question this answer responds to, matching the transcript length at the
-    # time it was fetched - lets the server reject a stale submission (e.g. the same
+    # time it was fetched. Lets the server reject a stale submission (e.g. the same
     # interview resumed and answered from two tabs) instead of silently misapplying
     # it to whatever question happens to be current by the time the request lands.
     question_number: int = Field(ge=1)

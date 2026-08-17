@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from app.llm import _coerce_field, generate_next_question
+from app.interviews.llm import _coerce_field, generate_next_question
 
 
 def test_coerce_field_rejects_a_value_outside_the_declared_enum():
@@ -27,7 +27,7 @@ def _mock_tool_use_response(name: str, input_dict: dict):
 
 
 def test_end_interview_tool_not_offered_below_min_questions_without_prior_redirect():
-    with patch("app.llm._client") as mock_client:
+    with patch("app.interviews.llm._client") as mock_client:
         mock_client.messages.create.return_value = _mock_tool_use_response(
             "ask_question",
             {"question": "Tell me more?", "focus_area": "area a", "is_redirect": False},
@@ -49,7 +49,7 @@ def test_end_interview_tool_not_offered_below_min_questions_without_prior_redire
 
 
 def test_end_interview_tool_offered_below_min_questions_with_prior_redirect():
-    with patch("app.llm._client") as mock_client:
+    with patch("app.interviews.llm._client") as mock_client:
         mock_client.messages.create.return_value = _mock_tool_use_response(
             "end_interview", {"closing_message": "Thanks for your time!"}
         )

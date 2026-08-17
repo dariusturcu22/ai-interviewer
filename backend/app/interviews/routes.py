@@ -3,12 +3,12 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app import llm
-from app.database import get_db
-from app.keywords import extract_keywords
-from app.limiter import limiter
-from app.models import Interview
-from app.schemas import (
+from app.core.database import get_db
+from app.core.limiter import limiter
+from app.interviews import llm
+from app.interviews.keywords import extract_keywords
+from app.interviews.models import Interview
+from app.interviews.schemas import (
     AnswerRequest,
     AnswerResponse,
     InterviewDetail,
@@ -70,7 +70,7 @@ def start_interview(request: Request, body: StartInterviewRequest, db: Session =
 def submit_answer(request: Request, body: AnswerRequest, db: Session = Depends(get_db)):
     # Locks the row for the duration of this request so a concurrent submission for the
     # same session (e.g. the same interview resumed in two tabs) can't read the same
-    # "current question" this one is about to advance past - it blocks until this
+    # "current question" this one is about to advance past. It blocks until this
     # transaction commits, then re-checks question_number below and is correctly
     # rejected as stale rather than silently overwriting the wrong transcript entry.
     interview = db.get(Interview, body.session_id, with_for_update=True)
@@ -81,11 +81,11 @@ def submit_answer(request: Request, body: AnswerRequest, db: Session = Depends(g
     if body.question_number != len(interview.transcript):
         raise HTTPException(
             status_code=409,
-            detail="This question is no longer current - the interview may have moved on "
-            "in another tab. Refresh to see the latest question.",
+            detail="This question is no longer current. The interview may have moved on "
+            "in another tab, refresh to see the latest question.",
         )
 
-    # Copies each turn dict, not just the outer list - the JSONB column isn't wrapped in
+    # Copies each turn dict, not just the outer list. The JSONB column isn't wrapped in
     # MutableList/MutableDict, so SQLAlchemy detects a change by comparing old vs. new
     # values. Reusing the same turn dicts and mutating one in place (transcript[-1][...] = ...)
     # would make the "before" value equal the "after" value whenever the list length doesn't
