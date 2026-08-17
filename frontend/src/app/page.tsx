@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 import { BackendWakeupBanner } from "@/components/backend-wakeup-banner";
+import { LoadingMessages } from "@/components/loading-messages";
 import { QuestionCard } from "@/components/question-card";
 import { RecentInterviews } from "@/components/recent-interviews";
 import { ResultCard } from "@/components/result-card";
@@ -37,6 +38,12 @@ type ResumableSession = { id: string; topic: string };
 
 const ACTIVE_INTERVIEW_KEY = "mini-interviewer:active-interview";
 const MAX_TOPIC_LENGTH = 200;
+
+const START_LOADING_MESSAGES = [
+  "Reading your topic...",
+  "Planning a few focus areas...",
+  "Drafting your first question...",
+];
 
 const fadeSlide = {
   initial: { opacity: 0, y: 8 },
@@ -312,6 +319,9 @@ export default function Home() {
               >
                 {starting ? "Starting..." : "Start Interview"}
               </Button>
+              {starting && (
+                <LoadingMessages messages={START_LOADING_MESSAGES} />
+              )}
             </div>
 
             <TopicSuggestions onSelect={setTopic} />
