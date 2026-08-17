@@ -59,9 +59,9 @@ export function QuestionCard({
 
   return (
     <Card className="w-full max-w-2xl">
-      <CardHeader>
+      <CardHeader className="gap-4">
         <ProgressDots count={questionNumber} />
-        <CardTitle className="text-xl leading-snug font-medium">
+        <CardTitle className="text-2xl leading-snug font-medium">
           {question}
         </CardTitle>
       </CardHeader>
@@ -78,7 +78,7 @@ export function QuestionCard({
             autoFocus
             className="text-base"
           />
-          <div className="text-muted-foreground flex items-center justify-between text-xs">
+          <div className="text-muted-foreground flex items-center justify-between text-sm">
             <span>Enter to submit, Ctrl+Enter for a new line</span>
             <span>
               {answer.length}/{MAX_ANSWER_LENGTH}
@@ -90,7 +90,7 @@ export function QuestionCard({
           <Button
             type="submit"
             disabled={!answer.trim() || submitting}
-            className="self-end"
+            className="h-11 self-end px-5 text-base"
           >
             {submitting ? (
               <>

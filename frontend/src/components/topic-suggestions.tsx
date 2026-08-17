@@ -11,13 +11,13 @@ export function TopicSuggestions({
   onSelect: (topic: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap justify-center gap-2">
+    <div className="flex flex-wrap justify-center gap-2.5">
       {SUGGESTIONS.map((suggestion) => (
         <button
           key={suggestion}
           type="button"
           onClick={() => onSelect(suggestion)}
-          className="bg-secondary/50 text-secondary-foreground hover:bg-secondary rounded-full border px-3 py-1.5 text-sm transition-colors"
+          className="bg-secondary/50 text-secondary-foreground hover:bg-secondary rounded-full border px-4 py-2 text-sm transition-colors"
         >
           {suggestion}
         </button>

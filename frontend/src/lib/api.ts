@@ -77,12 +77,20 @@ export class ApiError extends Error {
 // with a `msg` field) for a 422. Reading only the string case meant a validation failure -
 // e.g. a topic over the backend's 200-char limit - showed a generic "request failed" message
 // instead of anything actionable.
-function extractErrorMessage(body: unknown, path: string, status: number): string {
+function extractErrorMessage(
+  body: unknown,
+  path: string,
+  status: number,
+): string {
   const detail = (body as { detail?: unknown } | null)?.detail;
   if (typeof detail === "string") return detail;
   if (Array.isArray(detail) && detail.length > 0) {
     const messages = detail
-      .map((error) => (error && typeof error === "object" ? (error as { msg?: unknown }).msg : null))
+      .map((error) =>
+        error && typeof error === "object"
+          ? (error as { msg?: unknown }).msg
+          : null,
+      )
       .filter((msg): msg is string => typeof msg === "string");
     if (messages.length > 0) return messages.join(" ");
   }
@@ -97,7 +105,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const body = await response.json().catch(() => null);
-    throw new ApiError(extractErrorMessage(body, path, response.status), response.status);
+    throw new ApiError(
+      extractErrorMessage(body, path, response.status),
+      response.status,
+    );
   }
 
   return response.json() as Promise<T>;
@@ -121,7 +132,11 @@ export function submitAnswer(
 ): Promise<AnswerResponse> {
   return request("/interview/answer", {
     method: "POST",
-    body: JSON.stringify({ session_id: sessionId, answer, question_number: questionNumber }),
+    body: JSON.stringify({
+      session_id: sessionId,
+      answer,
+      question_number: questionNumber,
+    }),
   });
 }
 
