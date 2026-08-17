@@ -52,6 +52,12 @@ Turbopack - Turbopack's file watcher doesn't pick up changes through a Docker bi
 Windows, while webpack's does when polling is enabled (`WATCHPACK_POLLING`/`CHOKIDAR_USEPOLLING`
 in `docker-compose.yml`), so live-reload while editing still works.
 
+The frontend container also gets a separate `BACKEND_INTERNAL_URL` pointing at
+`http://backend:8000` (the Docker network name), used only for server-side fetches - the
+read-only past-interview page is a server component that runs inside the frontend container,
+where `NEXT_PUBLIC_API_URL`'s `localhost:8000` would resolve to the frontend container itself,
+not the backend. Client-side fetches from the browser still use `NEXT_PUBLIC_API_URL` as normal.
+
 ### Option B: backend in Docker, frontend via `npm run dev`
 
 Useful if you want the frontend running natively for the fastest dev-server experience.
