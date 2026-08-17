@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import time
 
 import anthropic
@@ -36,27 +37,58 @@ class LLMOutputError(Exception):
     """The model kept returning output that didn't match the expected tool schema."""
 
 
-def _matches_schema_type(value, schema_type: str) -> bool:
+_ITEM_TAG_PATTERN = re.compile(r"<item>(.*?)</item>", re.DOTALL)
+
+
+def _repair_string_array(value) -> list[str] | None:
+    """Recovers a string-array field the model occasionally emits as XML-tagged text
+    (e.g. "<item>...</item><item>...</item>") instead of a JSON array - an observed
+    leak of an unrelated tool-calling format into an array field's string content."""
+    if not isinstance(value, str):
+        return None
+    items = [item.strip() for item in _ITEM_TAG_PATTERN.findall(value) if item.strip()]
+    return items or None
+
+
+def _coerce_field(value, schema_type: str) -> tuple[bool, object]:
     if schema_type == "string":
-        return isinstance(value, str)
+        return isinstance(value, str), value
     if schema_type == "boolean":
-        return isinstance(value, bool)
+        return isinstance(value, bool), value
     if schema_type == "array":
-        return isinstance(value, list) and all(isinstance(item, str) for item in value)
-    return True
+        if isinstance(value, list) and all(isinstance(item, str) for item in value):
+            return True, value
+        repaired = _repair_string_array(value)
+        if repaired is not None:
+            return True, repaired
+        return False, value
+    return True, value
 
 
 def _extract_valid_tool_use(message, tools_by_name: dict) -> tuple[str, dict] | None:
     for block in message.content:
-        if block.type == "tool_use" and block.name in tools_by_name:
-            schema = tools_by_name[block.name]["input_schema"]
-            properties = schema["properties"]
-            if all(
-                field in block.input
-                and _matches_schema_type(block.input[field], properties[field]["type"])
-                for field in schema["required"]
-            ):
-                return block.name, block.input
+        if block.type != "tool_use" or block.name not in tools_by_name:
+            continue
+        schema = tools_by_name[block.name]["input_schema"]
+        properties = schema["properties"]
+        required = schema["required"]
+        if not all(field in block.input for field in required):
+            continue
+
+        coerced_input = dict(block.input)
+        all_valid = True
+        for field in required:
+            is_valid, coerced_value = _coerce_field(block.input[field], properties[field]["type"])
+            if not is_valid:
+                all_valid = False
+                break
+            coerced_input[field] = coerced_value
+        if all_valid:
+            if coerced_input != block.input:
+                logger.info(
+                    "Repaired malformed field(s) in %s tool output: %s", block.name, block.input
+                )
+            return block.name, coerced_input
     return None
 
 
@@ -103,7 +135,8 @@ def _call_tool(
     # is one-shot structured output, not a real tool-execution loop.
     stricter_system_prompt = (
         f"{system_prompt}\n\nYou must call one of the available tools with every required "
-        "field filled in - do not omit any field."
+        "field filled in - do not omit any field. For any array field, return a plain JSON "
+        "array of plain strings - do not wrap items in <item> tags or any other markup."
     )
     retry_response = _client.messages.create(
         model=MODEL,
