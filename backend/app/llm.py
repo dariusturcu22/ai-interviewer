@@ -55,6 +55,7 @@ WRITING_STYLE_INSTRUCTION = (
 
 
 _ITEM_TAG_PATTERN = re.compile(r"<item>(.*?)</item>", re.DOTALL)
+_STRAY_TAG_PATTERN = re.compile(r"</?[a-zA-Z_][\w:.-]*(?:\s[^<>]*)?>")
 
 
 def _repair_string_array(value) -> list[str] | None:
@@ -67,11 +68,25 @@ def _repair_string_array(value) -> list[str] | None:
     return items or None
 
 
+def _strip_stray_tags(value: str) -> str | None:
+    """Recovers a plain-string field the model occasionally suffixes or wraps with
+    leaked tool-calling markup (e.g. "...anchored food memory.\n</summary>\n</invoke>")
+    - the same leaked-format failure _repair_string_array handles for array fields,
+    showing up here as debris around otherwise-valid text instead of the whole value."""
+    if not _STRAY_TAG_PATTERN.search(value):
+        return None
+    stripped = _STRAY_TAG_PATTERN.sub("", value).strip()
+    return stripped or None
+
+
 def _coerce_field(value, field_schema: dict) -> tuple[bool, object]:
     schema_type = field_schema["type"]
     if schema_type == "string":
         if not isinstance(value, str):
             return False, value
+        repaired = _strip_stray_tags(value)
+        if repaired is not None:
+            value = repaired
         allowed_values = field_schema.get("enum")
         if allowed_values is not None and value not in allowed_values:
             return False, value
