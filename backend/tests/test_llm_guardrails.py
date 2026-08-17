@@ -38,6 +38,7 @@ def test_end_interview_tool_not_offered_below_min_questions_without_prior_redire
             transcript=[],
             question_count=1,
             min_questions=3,
+            max_questions=5,
             had_prior_redirect=False,
         )
 
@@ -58,6 +59,7 @@ def test_end_interview_tool_offered_below_min_questions_with_prior_redirect():
             transcript=[],
             question_count=1,
             min_questions=3,
+            max_questions=5,
             had_prior_redirect=True,
         )
 
