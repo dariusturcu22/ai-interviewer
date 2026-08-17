@@ -39,6 +39,7 @@ def start_interview(request: Request, body: StartInterviewRequest, db: Session =
         transcript=[],
         question_count=0,
         min_questions=MIN_QUESTIONS,
+        max_questions=MAX_QUESTIONS,
         had_prior_redirect=False,
     )
 
@@ -107,6 +108,7 @@ def submit_answer(request: Request, body: AnswerRequest, db: Session = Depends(g
         transcript=transcript,
         question_count=answered_count,
         min_questions=MIN_QUESTIONS,
+        max_questions=MAX_QUESTIONS,
         had_prior_redirect=had_prior_redirect,
     )
 
