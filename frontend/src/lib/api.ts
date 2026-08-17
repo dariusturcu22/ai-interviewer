@@ -1,4 +1,12 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+// Server-side rendering (e.g. the read-only past-interview page) runs inside the Next.js
+// server process, which in the Docker Compose setup is a different container than the
+// browser - "localhost" there refers to the frontend container itself, not the backend.
+// BACKEND_INTERNAL_URL lets server-side fetches use the Docker network name instead;
+// it's unset outside Docker, where NEXT_PUBLIC_API_URL is already reachable from both sides.
+const API_BASE_URL =
+  (typeof window === "undefined" && process.env.BACKEND_INTERNAL_URL) ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000";
 
 export type InterviewStatus = "in_progress" | "completed" | "declined";
 export type Sentiment = "positive" | "neutral" | "negative" | "mixed";
