@@ -13,12 +13,18 @@ class StartInterviewResponse(BaseModel):
     status: Literal["in_progress", "declined"]
     session_id: uuid.UUID | None = None
     question: str | None = None
+    question_number: int | None = None
     message: str | None = None
 
 
 class AnswerRequest(BaseModel):
     session_id: uuid.UUID
     answer: str = Field(min_length=1, max_length=5000)
+    # Which question this answer responds to, matching the transcript length at the
+    # time it was fetched - lets the server reject a stale submission (e.g. the same
+    # interview resumed and answered from two tabs) instead of silently misapplying
+    # it to whatever question happens to be current by the time the request lands.
+    question_number: int = Field(ge=1)
 
 
 class InterviewResult(BaseModel):
@@ -33,6 +39,7 @@ class InterviewResult(BaseModel):
 class AnswerResponse(BaseModel):
     status: Literal["in_progress", "completed"]
     question: str | None = None
+    question_number: int | None = None
     result: InterviewResult | None = None
 
 
