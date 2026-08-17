@@ -3,12 +3,36 @@
 import { Loader2, Send } from "lucide-react";
 import { useState } from "react";
 
+import { LoadingMessages } from "@/components/loading-messages";
 import { ProgressDots } from "@/components/progress-dots";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
 const MAX_ANSWER_LENGTH = 5000;
+
+// Mirrors the backend's MIN_QUESTIONS/MAX_QUESTIONS (backend/app/routes.py) - used only to
+// pick which loading messages read as more honest about what might happen next, not to
+// enforce anything client-side.
+const MIN_QUESTIONS = 3;
+const MAX_QUESTIONS = 5;
+
+const THINKING_MESSAGES = [
+  "Reading your answer...",
+  "Thinking about what to ask next...",
+];
+
+const MAYBE_WRAPPING_UP_MESSAGES = [
+  "Reading your answer...",
+  "Deciding what to explore next...",
+  "This might be one of the last few questions...",
+];
+
+const WRAPPING_UP_MESSAGES = [
+  "Wrapping up the interview...",
+  "Pulling together the key themes...",
+  "Writing a summary...",
+];
 
 interface QuestionCardProps {
   question: string;
@@ -104,6 +128,17 @@ export function QuestionCard({
               </>
             )}
           </Button>
+          {submitting && (
+            <LoadingMessages
+              messages={
+                questionNumber >= MAX_QUESTIONS
+                  ? WRAPPING_UP_MESSAGES
+                  : questionNumber >= MIN_QUESTIONS
+                    ? MAYBE_WRAPPING_UP_MESSAGES
+                    : THINKING_MESSAGES
+              }
+            />
+          )}
         </form>
       </CardContent>
     </Card>
