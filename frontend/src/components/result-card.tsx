@@ -56,9 +56,14 @@ export function ResultCard({ topic, result, onNewInterview }: ResultCardProps) {
         {result.keywords.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {result.keywords.map((keyword) => (
-              <Badge key={keyword} variant="secondary" className="text-sm">
-                {keyword}
-              </Badge>
+              // A trailing space after each badge (not just the flex gap) so copying the
+              // page text or reading it with a screen reader doesn't run keywords together -
+              // CSS gap creates visual spacing only, no actual space character.
+              <span key={keyword}>
+                <Badge variant="secondary" className="text-sm">
+                  {keyword}
+                </Badge>{" "}
+              </span>
             ))}
           </div>
         )}
