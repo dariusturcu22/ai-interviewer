@@ -12,10 +12,10 @@ from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.database import Base, engine
-from app.limiter import limiter
-from app.llm import LLMOutputError, LLMServiceError
-from app.routes import router
+from app.core.database import Base, engine
+from app.core.limiter import limiter
+from app.interviews.llm import LLMOutputError, LLMServiceError
+from app.interviews.routes import router
 
 Base.metadata.create_all(bind=engine)
 
@@ -25,7 +25,7 @@ app.state.limiter = limiter
 frontend_origin = os.environ.get("FRONTEND_ORIGIN", "http://localhost:3000")
 
 # Exception handlers run outside CORSMiddleware's wrapping in Starlette's middleware
-# stack, so error responses need the CORS header added explicitly - otherwise the
+# stack, so error responses need the CORS header added explicitly. Otherwise the
 # browser reports a misleading "CORS policy" failure instead of the real error.
 _cors_headers = {"Access-Control-Allow-Origin": frontend_origin}
 

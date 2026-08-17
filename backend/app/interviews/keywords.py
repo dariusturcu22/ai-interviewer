@@ -19,7 +19,7 @@ def extract_keywords(transcript: list[dict]) -> list[str]:
     for keyword in ranked:
         overlaps = [kept for kept in selected if keyword in kept or kept in keyword]
         if overlaps:
-            # Keep whichever version is more specific (longer) - drop the plain word
+            # Keep whichever version is more specific (longer): drop the plain word
             # once its phrase is already in the list, or vice versa if the phrase
             # shows up after the word it was built from.
             if all(len(keyword) > len(kept) for kept in overlaps):

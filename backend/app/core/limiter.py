@@ -6,7 +6,7 @@ def get_client_ip(request: Request) -> str:
     """Identifies the client for rate-limiting purposes.
 
     Behind a reverse proxy (e.g. Render), every request arrives from the proxy's own
-    address, so request.client.host is the same for all visitors - it would collapse
+    address, so request.client.host is the same for all visitors. It would collapse
     the per-IP rate limit into one shared bucket for the whole service. X-Forwarded-For
     holds the real chain instead. slowapi ships a get_ipaddr helper for this, but it
     checks request.headers["X_FORWARDED_FOR"] (underscores), which never matches the

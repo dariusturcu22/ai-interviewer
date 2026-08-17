@@ -24,9 +24,9 @@ ANALYSIS = {
 
 def test_start_then_answer_until_completion(client):
     with (
-        patch("app.llm.create_interview_plan", return_value=PLAN),
-        patch("app.llm.generate_next_question", side_effect=NEXT_QUESTION_SEQUENCE),
-        patch("app.llm.analyze_interview", return_value=ANALYSIS),
+        patch("app.interviews.llm.create_interview_plan", return_value=PLAN),
+        patch("app.interviews.llm.generate_next_question", side_effect=NEXT_QUESTION_SEQUENCE),
+        patch("app.interviews.llm.analyze_interview", return_value=ANALYSIS),
     ):
         start_response = client.post("/interview/start", json={"topic": "test topic"})
         assert start_response.status_code == 200
@@ -68,7 +68,7 @@ def test_start_then_answer_until_completion(client):
     assert detail_body["status"] == "completed"
 
     # The final answer must actually be persisted, not just used in-memory for the
-    # analysis call and then dropped - the transcript stored here is what the
+    # analysis call and then dropped. The transcript stored here is what the
     # assignment's "store the interview transcript" requirement refers to.
     stored_transcript = detail_body["transcript"]
     assert [turn["answer"] for turn in stored_transcript] == [
@@ -80,13 +80,13 @@ def test_start_then_answer_until_completion(client):
 
 def test_stale_question_number_is_rejected(client):
     with (
-        patch("app.llm.create_interview_plan", return_value=PLAN),
-        patch("app.llm.generate_next_question", side_effect=NEXT_QUESTION_SEQUENCE),
+        patch("app.interviews.llm.create_interview_plan", return_value=PLAN),
+        patch("app.interviews.llm.generate_next_question", side_effect=NEXT_QUESTION_SEQUENCE),
     ):
         start_response = client.post("/interview/start", json={"topic": "test topic"})
         session_id = start_response.json()["session_id"]
 
-        # Answering question 1 twice in a row - the second submission is stale, as if a
+        # Answering question 1 twice in a row: the second submission is stale, as if a
         # second tab had the interview open and submitted after the first tab already
         # advanced it.
         client.post(
@@ -108,7 +108,7 @@ def test_declined_topic_does_not_create_session(client):
         "strategy": "",
         "focus_areas": [],
     }
-    with patch("app.llm.create_interview_plan", return_value=declined_plan):
+    with patch("app.interviews.llm.create_interview_plan", return_value=declined_plan):
         response = client.post("/interview/start", json={"topic": "test topic"})
 
     assert response.status_code == 200
